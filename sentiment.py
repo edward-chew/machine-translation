@@ -1,13 +1,13 @@
 from polyglot.text import Text
 from polyglot.detect.base import logger as polyglot_logger
-import csv
 import os
 import pandas as pd
 import numpy as np
+from nptyping import Float64
 from lang_codes import lang_codes
 
 # The main routine
-def main(dir_name):
+def main(dir_name: str, tweet_col: str, true_label_col: str) -> None:
   # Silence error messages
   polyglot_logger.setLevel("ERROR")
 
@@ -17,47 +17,59 @@ def main(dir_name):
 
     language = rf.split("_")[0]
 
-    df["PolyglotSentiment"] = df.apply(lambda row: get_polarity(row.CleanTweetText, language), axis = 1)
-    df["PolyglotLabel"] = df.apply(lambda row: get_label(row.PolyglotSentiment), axis = 1)
+    # Get sentiments and labels
+    poly_sentiment_col = f"{tweet_col}_Sentiment"
+    df[poly_sentiment_col] = df.apply(lambda row: get_polarity(row.get(tweet_col), language), axis = 1)
+    poly_label_col = f"{tweet_col}_Label"
+    df[poly_label_col] = df.apply(lambda row: get_label(row.get(poly_sentiment_col)), axis = 1)
 
-    print(f"Accuracy of {language} is {calc_accuracy(df)}")
-    count_labels(df)
+    # Print accuracies / stats
+    print(f"Accuracy of {language} is {calc_accuracy(df, poly_label_col, true_label_col)}")
 
-    df.to_csv("PolyglotSentimentOutput/" + language + "_polyglot.csv", index = False)
+    noneu_df = df[(df[poly_label_col] != "Neutral") & (df[true_label_col] != "Neutral")]
+    print(f"Accuracy of {language} without neutrals is {calc_accuracy(noneu_df, poly_label_col, true_label_col)}")
+
+    count_labels(df, poly_label_col, true_label_col)
+
+    # Output to file
+    output_dir_name = dir_name + "_PolyglotSentimentOutput"
+    if not os.path.exists(output_dir_name):
+      os.makedirs(output_dir_name)
+    df.to_csv(output_dir_name + "/" + language + "_polyglot.csv", index = False)
 
 
 # Calculate accuracy of Polyglot labels
-def calc_accuracy(df) -> float:
-  correct_labels = df.apply(lambda row: True if row.SentLabel == row.PolyglotLabel else False, axis = 1)
+def calc_accuracy(df, poly_label_col: str, true_label_col: str) -> float:
+  correct_labels = df.apply(lambda row: True if row.get(true_label_col) == row.get(poly_label_col) else False, axis = 1)
   return len(correct_labels[correct_labels == True].index) / len(df.index) 
 
 
 # Generate labeling statistics
-def count_labels(df):
-  labels = df.apply(check_label, axis = 1)
+def count_labels(df, poly_label_col: str, true_label_col: str):
+  labels = df.apply(lambda row: check_label(row, poly_label_col, true_label_col), axis = 1)
   
   val_counts = labels.value_counts()
 
-  tot_neg_labels = len(df[df["PolyglotLabel"] == "Negative"])
+  tot_neg_labels = len(df[df[poly_label_col] == "Negative"])
   print(f'  Total neg labels: {tot_neg_labels} ({tot_neg_labels / len(df.index) :.1%})')
-  tot_neu_labels = len(df[df["PolyglotLabel"] == "Neutral"])
+  tot_neu_labels = len(df[df[poly_label_col] == "Neutral"])
   print(f'  Total neu labels: {tot_neu_labels} ({tot_neu_labels / len(df.index) :.1%})')
-  tot_pos_labels = len(df[df["PolyglotLabel"] == "Positive"])
+  tot_pos_labels = len(df[df[poly_label_col] == "Positive"])
   print(f'  Total pos labels: {tot_pos_labels} ({tot_pos_labels / len(df.index) :.1%})')
 
-  tot_neg = len(df[df["SentLabel"] == "Negative"])
+  tot_neg = len(df[df[true_label_col] == "Negative"])
   print(f'  Total neg:               {tot_neg}')
   print(f'    Neg correct:           {val_counts["neg correct"]} ({val_counts["neg correct"] / tot_neg :.1%})')
   print(f'    Neg mislabeled as neu: {val_counts["neg mislabled as neu"]} ({val_counts["neg mislabled as neu"] / tot_neg :.1%})')
   print(f'    Neg mislabeled as pos: {val_counts["neg mislabled as pos"]} ({val_counts["neg mislabled as pos"] / tot_neg :.1%})')
 
-  tot_neu = len(df[df["SentLabel"] == "Neutral"])
+  tot_neu = len(df[df[true_label_col] == "Neutral"])
   print(f'  Total neu:               {tot_neu}')
   print(f'    Neu correct:           {val_counts["neu correct"]} ({val_counts["neu correct"] / tot_neu :.1%})')
   print(f'    Neu mislabeled as neg: {val_counts["neu mislabled as neg"]} ({val_counts["neu mislabled as neg"] / tot_neu :.1%})')
   print(f'    Neu mislabeled as pos: {val_counts["neu mislabled as pos"]} ({val_counts["neu mislabled as pos"] / tot_neu :.1%})')
 
-  tot_pos = len(df[df["SentLabel"] == "Positive"])
+  tot_pos = len(df[df[true_label_col] == "Positive"])
   print(f'  Total pos:               {tot_pos}')
   print(f'    Pos correct:           {val_counts["pos correct"]} ({val_counts["pos correct"] / tot_pos :.1%})')
   print(f'    Pos mislabeled as neg: {val_counts["pos mislabled as neg"]} ({val_counts["pos mislabled as neg"] / tot_pos :.1%})')
@@ -65,31 +77,31 @@ def count_labels(df):
 
 
 # Output a string indicating the correct/incorrect labeling for a row
-def check_label(row):
-  if row.SentLabel == "Negative" and row.PolyglotLabel == "Negative":
+def check_label(row, poly_label_col: str, true_label_col: str):
+  if row.get(true_label_col) == "Negative" and row.get(poly_label_col) == "Negative":
     return "neg correct"
-  elif row.SentLabel == "Neutral" and row.PolyglotLabel == "Neutral":
+  elif row.get(true_label_col) == "Neutral" and row.get(poly_label_col) == "Neutral":
     return "neu correct"
-  elif row.SentLabel == "Positive" and row.PolyglotLabel == "Positive":
+  elif row.get(true_label_col) == "Positive" and row.get(poly_label_col) == "Positive":
     return "pos correct"
 
-  if row.SentLabel == "Negative" and row.PolyglotLabel == "Neutral":
+  if row.get(true_label_col)== "Negative" and row.get(poly_label_col) == "Neutral":
     return "neg mislabled as neu"
-  elif row.SentLabel == "Negative" and row.PolyglotLabel == "Positive":
+  elif row.get(true_label_col) == "Negative" and row.get(poly_label_col) == "Positive":
     return "neg mislabled as pos"
-  elif row.SentLabel == "Neutral" and row.PolyglotLabel == "Negative":
+  elif row.get(true_label_col) == "Neutral" and row.get(poly_label_col) == "Negative":
     return "neu mislabled as neg"
-  elif row.SentLabel == "Neutral" and row.PolyglotLabel == "Positive":
+  elif row.get(true_label_col) == "Neutral" and row.get(poly_label_col) == "Positive":
     return "neu mislabled as pos"
-  elif row.SentLabel == "Positive" and row.PolyglotLabel == "Neutral":
+  elif row.get(true_label_col) == "Positive" and row.get(poly_label_col) == "Neutral":
     return "pos mislabled as neu"
-  elif row.SentLabel == "Positive" and row.PolyglotLabel == "Negative":
+  elif row.get(true_label_col) == "Positive" and row.get(poly_label_col) == "Negative":
     return "pos mislabled as neg"
 
 
 # Convert numerical polarity to text label
-def get_label(polarity: float) -> str:
-  if np.isnan(polarity):
+def get_label(polarity: Float64) -> str:
+  if polarity is None:
     return ""
   
   sentiment = "Neutral"
@@ -102,7 +114,7 @@ def get_label(polarity: float) -> str:
 
 
 # Get polyglot polarity
-def get_polarity(tweet: str, lang: str) -> float:
+def get_polarity(tweet: str, lang: str) -> Float64:
   t = Text(str(tweet), hint_language_code = lang_codes[lang])
   assert(t.language.code == lang_codes[lang])
 
@@ -114,5 +126,7 @@ def get_polarity(tweet: str, lang: str) -> float:
 
 
 if __name__ == "__main__":
-  dir_name = "CleanTweets"
-  main(dir_name)
+  dir_name = "CleanTweets"  # Name of the directory the tweet files are in
+  tweet_col = "CleanTweetText"  # Name of the column the tweet text is in
+  true_label_col = "SentLabel"  # Name of column the correct label is in
+  main(dir_name, tweet_col, true_label_col)

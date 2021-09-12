@@ -1,10 +1,9 @@
-import csv
 import os
 import re
 import pandas as pd
 
 
-def main(dir_name):
+def main(dir_name: str, tweet_col: str) -> None:
   # Go through all the files in the specified directory
   for rf in sorted(os.listdir(dir_name)):
     print(rf)
@@ -13,9 +12,13 @@ def main(dir_name):
     
     language = rf.split("_")[0]
 
-    df["CleanTweetText"] = df.apply(lambda row: clean_text(row.get("Tweet text")), axis = 1)
+    df[f"{tweet_col}_Clean"] = df.apply(lambda row: clean_text(row.get(tweet_col)), axis = 1)
 
-    df.to_csv("CleanTweets/" + language + "_clean_tweets.csv", index = False)
+    # Output to file
+    output_dir_name = dir_name + "_CleanOutput"
+    if not os.path.exists(output_dir_name):
+      os.makedirs(output_dir_name)
+    df.to_csv(output_dir_name + "/" + language + "_clean_tweets.csv", index = False)
 
 
 def clean_text(text: str) -> str:
@@ -34,5 +37,6 @@ def clean_text(text: str) -> str:
 
 
 if __name__ == "__main__":
-  dir_name = "Twitter Dataset"
-  main(dir_name)
+  dir_name = "Twitter Dataset"  # Name of the directory the tweet files are in
+  tweet_col = "Tweet Text"  # Name of the column the tweet text is in
+  main(dir_name, tweet_col)

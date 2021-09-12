@@ -27,6 +27,7 @@ def translate(text: str, src: str, dest: str, index) -> str:
   
   translator = googletrans.Translator()
   translated = translator.translate(text, src=src, dest=dest)
+
   return translated.text
 
 
