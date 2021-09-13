@@ -11,6 +11,8 @@ def main(dir_name: str, tweet_col: str, true_label_col: str) -> None:
   # Silence error messages
   polyglot_logger.setLevel("ERROR")
 
+  print("--- Results ---")
+
   # Go through all the files in the specified directory
   for rf in sorted(os.listdir(dir_name)):
     df = pd.read_csv(dir_name + "/" + rf)
@@ -24,10 +26,10 @@ def main(dir_name: str, tweet_col: str, true_label_col: str) -> None:
     df[poly_label_col] = df.apply(lambda row: get_label(row.get(poly_sentiment_col)), axis = 1)
 
     # Print accuracies / stats
-    print(f"Accuracy of {language} is {calc_accuracy(df, poly_label_col, true_label_col)}")
+    print(f"Accuracy of {language} is              {calc_accuracy(df, poly_label_col, true_label_col)}")
 
     noneu_df = df[(df[poly_label_col] != "Neutral") & (df[true_label_col] != "Neutral")]
-    print(f"Accuracy of {language} without neutrals is {calc_accuracy(noneu_df, poly_label_col, true_label_col)}")
+    print(f"Accuracy of {language} w/o neutrals is {calc_accuracy(noneu_df, poly_label_col, true_label_col)}")
 
     count_labels(df, poly_label_col, true_label_col)
 
@@ -51,11 +53,11 @@ def count_labels(df, poly_label_col: str, true_label_col: str):
   val_counts = labels.value_counts()
 
   tot_neg_labels = len(df[df[poly_label_col] == "Negative"])
-  print(f'  Total neg labels: {tot_neg_labels} ({tot_neg_labels / len(df.index) :.1%})')
+  print(f'  Total neg labels:        {tot_neg_labels} ({tot_neg_labels / len(df.index) :.1%})')
   tot_neu_labels = len(df[df[poly_label_col] == "Neutral"])
-  print(f'  Total neu labels: {tot_neu_labels} ({tot_neu_labels / len(df.index) :.1%})')
+  print(f'  Total neu labels:        {tot_neu_labels} ({tot_neu_labels / len(df.index) :.1%})')
   tot_pos_labels = len(df[df[poly_label_col] == "Positive"])
-  print(f'  Total pos labels: {tot_pos_labels} ({tot_pos_labels / len(df.index) :.1%})')
+  print(f'  Total pos labels:        {tot_pos_labels} ({tot_pos_labels / len(df.index) :.1%})')
 
   tot_neg = len(df[df[true_label_col] == "Negative"])
   print(f'  Total neg:               {tot_neg}')
@@ -126,7 +128,7 @@ def get_polarity(tweet: str, lang: str) -> Float64:
 
 
 if __name__ == "__main__":
-  dir_name = "CleanTweets"  # Name of the directory the tweet files are in
-  tweet_col = "CleanTweetText"  # Name of the column the tweet text is in
+  dir_name = "Twitter Dataset_CleanOutput"  # Name of the directory the tweet files are in
+  tweet_col = "Tweet text_Clean"  # Name of the column the tweet text is in
   true_label_col = "SentLabel"  # Name of column the correct label is in
   main(dir_name, tweet_col, true_label_col)

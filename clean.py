@@ -4,6 +4,7 @@ import pandas as pd
 
 
 def main(dir_name: str, tweet_col: str) -> None:
+  print("--- Cleaning ---")
   # Go through all the files in the specified directory
   for rf in sorted(os.listdir(dir_name)):
     print(rf)
@@ -38,5 +39,5 @@ def clean_text(text: str) -> str:
 
 if __name__ == "__main__":
   dir_name = "Twitter Dataset"  # Name of the directory the tweet files are in
-  tweet_col = "Tweet Text"  # Name of the column the tweet text is in
+  tweet_col = "Tweet text"  # Name of the column the tweet text is in
   main(dir_name, tweet_col)
