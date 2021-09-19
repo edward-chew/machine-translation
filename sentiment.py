@@ -5,6 +5,7 @@ import pandas as pd
 import numpy as np
 from nptyping import Float64
 from lang_codes import lang_codes
+from sklearn.metrics import confusion_matrix
 
 # The main routine
 def main(dir_name: str, tweet_col: str, true_label_col: str) -> None:
@@ -19,9 +20,10 @@ def main(dir_name: str, tweet_col: str, true_label_col: str) -> None:
 
     language = rf.split("_")[0]
 
-    # Get sentiments and labels
+    # Get numerical sentiment
     poly_sentiment_col = f"{tweet_col}_Sentiment"
     df[poly_sentiment_col] = df.apply(lambda row: get_polarity(row.get(tweet_col), language), axis = 1)
+    # Convert numerical sentiment to text labels
     poly_label_col = f"{tweet_col}_Label"
     df[poly_label_col] = df.apply(lambda row: get_label(row.get(poly_sentiment_col)), axis = 1)
 
@@ -32,6 +34,9 @@ def main(dir_name: str, tweet_col: str, true_label_col: str) -> None:
     print(f"Accuracy of {language} w/o neutrals is {calc_accuracy(noneu_df, poly_label_col, true_label_col)}")
 
     count_labels(df, poly_label_col, true_label_col)
+
+    # Confusion Matrix
+    print_confusion_matrix(df, poly_label_col, true_label_col)
 
     # Output to file
     output_dir_name = dir_name + "_PolyglotSentimentOutput"
@@ -44,6 +49,16 @@ def main(dir_name: str, tweet_col: str, true_label_col: str) -> None:
 def calc_accuracy(df, poly_label_col: str, true_label_col: str) -> float:
   correct_labels = df.apply(lambda row: True if row.get(true_label_col) == row.get(poly_label_col) else False, axis = 1)
   return len(correct_labels[correct_labels == True].index) / len(df.index) 
+
+
+# Generate confusion matrix
+def print_confusion_matrix(df, poly_label_col: str, true_label_col: str) -> None:
+  y_true = df[true_label_col].tolist()
+  y_pred = df[poly_label_col].tolist()
+
+  l = ["Positive", "Negative", "Neutral"]
+  cm = confusion_matrix(y_true, y_pred, labels=l)
+  print("  Confusion matrix: \n", cm)
 
 
 # Generate labeling statistics
