@@ -1,11 +1,13 @@
 from polyglot.text import Text
 from polyglot.detect.base import logger as polyglot_logger
 import os
+import sys
 import pandas as pd
 import numpy as np
 from nptyping import Float64
 from lang_codes import lang_codes
 from sklearn.metrics import confusion_matrix
+import argparse
 
 # The main routine
 def main(dir_name: str, tweet_col: str, true_label_col: str) -> None:
@@ -13,6 +15,9 @@ def main(dir_name: str, tweet_col: str, true_label_col: str) -> None:
   polyglot_logger.setLevel("ERROR")
 
   print("--- Results ---")
+
+  accuracies = { "overall" : {},
+                 "no_neu"  : {} }
 
   # Go through all the files in the specified directory
   for rf in sorted(os.listdir(dir_name)):
@@ -28,10 +33,14 @@ def main(dir_name: str, tweet_col: str, true_label_col: str) -> None:
     df[poly_label_col] = df.apply(lambda row: get_label(row.get(poly_sentiment_col)), axis = 1)
 
     # Print accuracies / stats
-    print(f"Accuracy of {language} is              {calc_accuracy(df, poly_label_col, true_label_col)}")
+    accuracy = calc_accuracy(df, poly_label_col, true_label_col)
+    accuracies["overall"][language] = accuracy
+    print(f"Accuracy of {language} is              {accuracy}")
 
     noneu_df = df[(df[poly_label_col] != "Neutral") & (df[true_label_col] != "Neutral")]
-    print(f"Accuracy of {language} w/o neutrals is {calc_accuracy(noneu_df, poly_label_col, true_label_col)}")
+    accuracy = calc_accuracy(noneu_df, poly_label_col, true_label_col)
+    accuracies["no_neu"][language] = accuracy
+    print(f"Accuracy of {language} w/o neutrals is {accuracy}")
 
     count_labels(df, poly_label_col, true_label_col)
 
@@ -43,6 +52,8 @@ def main(dir_name: str, tweet_col: str, true_label_col: str) -> None:
     if not os.path.exists(output_dir_name):
       os.makedirs(output_dir_name)
     df.to_csv(output_dir_name + "/" + language + "_polyglot.csv", index = False)
+
+  print(accuracies)
 
 
 # Calculate accuracy of Polyglot labels
@@ -143,7 +154,14 @@ def get_polarity(tweet: str, lang: str) -> Float64:
 
 
 if __name__ == "__main__":
-  dir_name = "Twitter Dataset_CleanOutput"  # Name of the directory the tweet files are in
-  tweet_col = "Tweet text_Clean"  # Name of the column the tweet text is in
-  true_label_col = "SentLabel"  # Name of column the correct label is in
+  parser = argparse.ArgumentParser()
+  parser.add_argument("file_directory", default="Twitter Dataset_CleanOutput", help="Name of the directory the tweet files are in")
+  parser.add_argument("tweet_column_name", default="Tweet text_Clean", help="Name of the column the tweet text is in")
+  parser.add_argument("true_label_column_name", default="SentLabel", help="Name of column the correct label is in")
+  args = parser.parse_args()
+
+  dir_name = args.file_directory
+  tweet_col = args.tweet_column_name
+  true_label_col = args.true_label_column_name
+
   main(dir_name, tweet_col, true_label_col)
