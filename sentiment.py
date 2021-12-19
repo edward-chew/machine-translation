@@ -1,7 +1,6 @@
 from polyglot.text import Text
 from polyglot.detect.base import logger as polyglot_logger
 import os
-import sys
 import pandas as pd
 import numpy as np
 from nptyping import Float64
