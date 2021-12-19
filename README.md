@@ -6,12 +6,18 @@ The input files of the scripts are files with the full tweet text, not tweet ID'
 
 ## Contents
 This repository contains the following:
-- **clean.py**: Cleans the tweet text: removing return handles, Twitter handles, and number as well as makeing all text lowercase.
-- **sentiment.py**: Gets the [Polyglot](https://polyglot.readthedocs.io/en/latest/Sentiment.html) sentiment of tweets, and converts them to text labels (Negative, Neutral, Positive).
-- **lang_codes.py**: The language codes used by sentiment.py to provide language hints to Polyglot.
-- **translate.py**: *(To be added)* Translates tweet text between English and the 15 other specified lanaguges, and vice versa.
-- **bootstrap.py**: Bootstraps the accuracies of the sentiment classification.
-- **results.ipynb**: Generates figures.
+- **clean.py**
+    - Cleans the tweet text: removing return handles, Twitter handles, and number as well as makeing all text lowercase.
+- **sentiment.py**
+    - Gets the [Polyglot](https://polyglot.readthedocs.io/en/latest/Sentiment.html) sentiment of tweets, and converts them to text labels (Negative, Neutral, Positive).
+- **lang_codes.py**
+    - The language codes used by sentiment.py to provide language hints to Polyglot.
+- **translate.py**
+    - *(To be added)* Translates tweet text between English and the 15 other specified lanaguges, and vice versa.
+- **bootstrap.py**
+    - Bootstraps the accuracies of the sentiment classification.
+- **results.ipynb**
+    - Generates figures.
 
 ## Usage
 1. **Clean the tweets.**
@@ -19,7 +25,7 @@ This repository contains the following:
         python clean.py [file_directory] [tweet_column_name]
     where `[file_directory]` is the directory of the tweet files and `[tweet_column_name]` is the name of the csv column of the tweets.
 
-    The outputs a directory `[file_directory]_CleanOutput`.
+    The outputs a directory `/[file_directory]_CleanOutput`.
 2. **Translate and back translate the tweets.**
 
         python translate.py [file_directory] [tweet_column_name]
@@ -28,13 +34,13 @@ This repository contains the following:
         python sentiment.py [file_directory] [tweet_column_name] [true_label_column_name]
     where `[file_directory]` is the directory of the tweet files (outputs of `clean.py` and `translate.py`) and `[true_label_column_name]` is the name of the csv column of the correct sentiment label.
 
-    The outputs a directory `[file_directory]_PolyglotSentimentOutput`.
+    The outputs a directory `/[file_directory]_PolyglotSentimentOutput`.
 4. **Bootstrap the results.**
 
         python bootstrap.py [file_directory] [poly_label_column_name] [true_label_column_name]
     where `[file_directory]` is the directory of the tweet files with sentiment labels, `[poly_label_column_name]` is the name of the csv column of the Polyglot sentiment label, and `[true_label_column_name]` is the name of the csv column of the correct sentiment label.
 
-    This outputs a directory `Bootstrapped` of structure
+    This outputs a directory `/Bootstrapped` of structure
 
         Bootstrapped
         ├── EnglishToOriginalTweets
