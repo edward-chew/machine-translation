@@ -4,18 +4,18 @@ import numpy as np
 import googletrans
 from lang_codes import lang_codes
 
-def main(dir_name):
+def main(input_dir_name, output_dir_name):
   # Go through all the files in the specified directory
-  for rf in sorted(os.listdir(dir_name)):
+  for rf in sorted(os.listdir(input_dir_name)):
     print(rf)
 
-    df = pd.read_csv(dir_name + "/" + rf)
+    df = pd.read_csv(input_dir_name + rf)
     
     language = rf.split("_")[0]
 
     df["TranslatedToEnglish"] = df.apply(lambda row: translate(row.get("CleanTweetText"), lang_codes[language], "en", row.name), axis = 1)
 
-    df.to_csv("TranslatedToEnglishTweets/" + language + "_to_English_tweets.csv", index = False)
+    df.to_csv(output_dir_name + language + "_to_English_tweets.csv", index = False)
 
 
 def translate(text: str, src: str, dest: str, index) -> str:
@@ -32,5 +32,6 @@ def translate(text: str, src: str, dest: str, index) -> str:
 
 
 if __name__ == "__main__":
-  dir_name = "CleanTweetsTester"
-  main(dir_name)
+  input_dir_name = "CleanTweetsTester/"
+  output_dir_name = "TranslatedToEnglishTweets/"
+  main(input_dir_name, output_dir_name)
