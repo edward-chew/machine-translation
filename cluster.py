@@ -1,0 +1,201 @@
+import pandas as pd
+import numpy as np
+import string
+import re
+import os
+import gsdmm
+import pickle
+from gsdmm import MovieGroupProcess
+from tqdm import tqdm
+from nltk.corpus import stopwords
+from nltk.tokenize import word_tokenize
+from sklearn.metrics import accuracy_score
+from gensim.corpora import Dictionary
+from gensim.models.coherencemodel import CoherenceModel
+
+
+def remove_emojis(text):
+  regrex_pattern = re.compile(pattern = "["
+    u"\U0001F600-\U0001F64F"  # emoticons
+    u"\U0001F300-\U0001F5FF"  # symbols & pictographs
+    u"\U0001F680-\U0001F6FF"  # transport & map symbols
+    u"\U0001F1E0-\U0001F1FF"  # flags (iOS)
+                        "]+", flags = re.UNICODE)
+  return regrex_pattern.sub(r"", text)
+
+
+def tokenize(text, lang):
+  # Checks for null strings
+  if isinstance(text, float):
+    return []
+
+  text = remove_emojis(text)
+
+  stoplist = stopwords.words(lang) + list(string.punctuation)
+  tokens = word_tokenize(text)
+  tokens = [x for x in tokens if x not in stoplist and len(x) > 2]
+  
+  return tokens
+
+
+def topic_allocation(df: pd.DataFrame, docs, mgp, tweet_col):
+  """allocates all topics to each document in original dataframe"""
+  topic_allocations = []
+  for doc in tqdm(docs):
+    topic_label, _ = mgp.choose_best_label(doc)
+    topic_allocations.append(topic_label)
+
+  df.loc[:, tweet_col + "_Cluster"] = topic_allocations
+
+  print("Complete. Number of documents with topic allocated: {}".format(len(df)))
+
+
+# Generate labels from the model and write to the df
+def get_labels(df: pd.DataFrame, tweet_col: str, model, language: str):
+  df[tweet_col + "_Tokens"] = df[tweet_col].apply(tokenize, lang=language.lower())
+  docs = df[tweet_col + "_Tokens"].tolist()
+  topic_allocation(df, docs, model, tweet_col)
+
+
+# Define function to get words in topics (to compute coherence score)
+def get_topics_lists(model, top_clusters, n_words):
+  """
+  Gets lists of words in topics as a list of lists.
+  
+  model: gsdmm instance
+  top_clusters:  numpy array containing indices of top_clusters
+  n_words: top n number of words to include
+  
+  """
+  # create empty list to contain topics
+  topics = []
+  
+  # iterate over top n clusters
+  for cluster in top_clusters:
+    #create sorted dictionary of word distributions
+    sorted_dict = sorted(model.cluster_word_distribution[cluster].items(), key=lambda k: k[1], reverse=True)[:n_words]
+    
+    #create empty list to contain words
+    topic = []
+    
+    #iterate over top n words in topic
+    for k,v in sorted_dict:
+      #append words to topic list
+      topic.append(k)
+        
+    #append topics to topics list    
+    topics.append(topic)
+  
+  return topics
+
+
+def get_best_model(df: pd.DataFrame, tweet_col: str, language: str, k_list: list[int], alpha_list: list[float], beta_list: list[float], dir_name: str):
+  """Get the best model for a given language by conducting a grid search for hyperparameters K, alpha, and beta
+
+  Args:
+    df (pd.DataFrame): tweets
+    tweet_col (str): name of column of tweets
+    language (str): language of tweets
+    k_list (list[int]): k values to test (number of potential clusters)
+    alpha_list (list[float]): alpha values to test (controls completeness)
+    beta_list (list[float]): beta values to test (controls homogeneity)
+    dir_name (str): name of directory tweet files are in
+
+  Returns:
+    gsdmm model
+  """
+  docs = df[tweet_col].apply(tokenize, lang=language.lower()).tolist()
+
+  best_model = best_k = best_alpha = best_beta = None
+  best_coherence = 0
+
+  for k in k_list:
+    for a in alpha_list:
+      for b in beta_list:
+        print(f"--- Testing k={k} a={a} b={b} ---")
+        mgp = gsdmm.MovieGroupProcess(K=k, alpha=a, beta=b, n_iters=5)
+        dictionary = Dictionary(docs)
+        n_terms = len(dictionary)
+        mgp.fit(docs, n_terms)
+
+        bow_corpus = [dictionary.doc2bow(doc) for doc in docs]
+
+        # Number of documents per topic
+        doc_count = np.array(mgp.cluster_doc_count)
+
+        # Most important clusters (by number of docs inside), sorted from most to least important
+        top_index = doc_count.argsort()[-10:][::-1]
+        topics = get_topics_lists(mgp, top_index, 20) 
+
+        # Get coherence and check if it is better than what we have so far
+        cur_coherence = get_coherence(topics, dictionary, bow_corpus, docs)
+        if cur_coherence > best_coherence:
+          best_model, best_k, best_alpha, best_beta = mgp, k, a, b
+          best_coherence = cur_coherence
+
+  # Save the best model
+  output_dir_name = dir_name + "_ClusterBestModels/"
+  if not os.path.exists(output_dir_name):
+    os.makedirs(output_dir_name)
+  with open(output_dir_name + language + ".model", "wb") as f:
+    pickle.dump(best_model, f)
+    f.close()
+  
+  print(f"\n--- Best model: k={best_k} alpha={best_alpha} beta={best_beta} ---\n")
+
+  return best_model
+
+
+# Get coherence score for a model
+def get_coherence(topics, dictionary, bow_corpus, docs):
+  cm_gsdmm = CoherenceModel(topics=topics, 
+                            dictionary=dictionary, 
+                            corpus=bow_corpus, 
+                            texts=docs, 
+                            coherence='c_v')
+  return cm_gsdmm.get_coherence()
+
+
+def main(dir_name: str, tweet_col_pipe1: str, tweet_col_pipe3: str):
+  # Go through all the files in the specified directory
+  for rf in sorted(os.listdir(dir_name)):
+    df = pd.read_csv(dir_name + "/" + rf)
+
+    language = rf.split(".")[0]
+    # Skip the langauge if the stopwords for preprocessing are not available
+    if language.lower() not in stopwords.fileids() or language.lower() == "english":
+      continue
+    print(f"------ {language} ------")
+
+    # Generate model from pipeline 1 clusters
+    model = get_best_model(df, tweet_col_pipe1, language, [80], [0.1, 0.3], [0.3, 0.5], dir_name)
+
+    # Generate cluster labels and append to df
+    get_labels(df, tweet_col_pipe1, model, language)
+    get_labels(df, tweet_col_pipe3, model, language)
+
+    accuracy = accuracy_score(df[tweet_col_pipe1 + "_Cluster"], df[tweet_col_pipe3 + "_Cluster"])
+    print(accuracy)
+
+    # Output to file
+    output_dir_name = dir_name + "_TopicClusterOutput"
+    if not os.path.exists(output_dir_name):
+      os.makedirs(output_dir_name)
+    df.to_csv(output_dir_name + "/" + rf, index = False)
+
+
+if __name__ == "__main__":
+  # parser = argparse.ArgumentParser()
+  # parser.add_argument("file_directory", default="Twitter Dataset_CleanOutput", help="Name of the directory the tweet files are in")
+  # parser.add_argument("tweet_column_name_pipe1", default="Tweet text_Clean", help="Name of the column the Pipeline 1 cleaned tweet text is in")
+  # parser.add_argument("tweet_column_name_pipe3", default="Tweet text_Clean", help="Name of the column the Pipeline 3 tweet text is in")
+  # args = parser.parse_args()
+
+  # dir_name = args.file_directory
+  # tweet_col_pipe1 = args.tweet_column_name_pipe1
+  # tweet_col_pipe3 = args.tweet_column_name_pipe3
+
+  dir_name = "EnglishToOriginalTweets_30000Sample"
+  tweet_col_pipe1 = "Tweet text_Clean"
+  tweet_col_pipe3 = "ReverseTrans"
+  main(dir_name, tweet_col_pipe1, tweet_col_pipe3)

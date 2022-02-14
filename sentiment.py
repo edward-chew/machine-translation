@@ -50,7 +50,7 @@ def main(dir_name: str, tweet_col: str, true_label_col: str) -> None:
     output_dir_name = dir_name + "_PolyglotSentimentOutput"
     if not os.path.exists(output_dir_name):
       os.makedirs(output_dir_name)
-    df.to_csv(output_dir_name + "/" + language + "_polyglot.csv", index = False)
+    df.to_csv(output_dir_name + "/" + language, index = False)
 
   print(accuracies)
 

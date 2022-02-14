@@ -3,7 +3,7 @@ import pandas as pd
 from statistics import median, mean
 import numpy as np
 import scipy.stats as st
-from sentiment import calc_accuracy
+from sklearn.metrics import accuracy_score
 import argparse
 import csv
 
@@ -69,11 +69,11 @@ def bootstrap(df, poly_label_col: str, true_label_col: str, sample_size: int=0):
       sample_df = df.sample(n=sample_size, replace=True, random_state=i)  # Sample a specified sample size
     else:
       sample_df = df.sample(frac=1, replace=True, random_state=i)  # Sample the same number of rows as original df, with replacement
-    accuracies.append(calc_accuracy(sample_df, poly_label_col, true_label_col))
+    accuracies.append(accuracy_score(sample_df[true_label_col], sample_df[poly_label_col]))
     
     # Calculate accuracies without neutrals
     noneu_sample_df = sample_df[(sample_df[poly_label_col] != "Neutral") & (sample_df[true_label_col] != "Neutral")]
-    noneu_accuracies.append(calc_accuracy(noneu_sample_df, poly_label_col, true_label_col))
+    noneu_accuracies.append(accuracy_score(noneu_sample_df[true_label_col], noneu_sample_df[poly_label_col]))
   
   return accuracies, noneu_accuracies
 
