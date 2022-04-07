@@ -5,13 +5,17 @@ import re
 import os
 import gsdmm
 import pickle
+import stopwordsiso
+import unicodedata
 from gsdmm import MovieGroupProcess
 from tqdm import tqdm
-from nltk.corpus import stopwords
+from nltk.corpus import stopwords as nltk_stopwords
 from nltk.tokenize import word_tokenize
+from stopwordsiso import stopwords as iso_stopwords
 from sklearn.metrics import accuracy_score
 from gensim.corpora import Dictionary
 from gensim.models.coherencemodel import CoherenceModel
+from lang_codes import lang_codes
 
 
 def remove_emojis(text):
@@ -31,9 +35,13 @@ def tokenize(text, lang):
 
   text = remove_emojis(text)
 
-  stoplist = stopwords.words(lang) + list(string.punctuation)
+  if lang.lower() in nltk_stopwords.fileids():
+    stoplist = nltk_stopwords.words(lang.lower())
+  else:
+    stoplist = list(iso_stopwords(lang_codes[lang.title()]))
   tokens = word_tokenize(text)
-  tokens = [x for x in tokens if x not in stoplist and len(x) > 2]
+  # Only include tokens that aren't stop words, are more than 2 characters long, and are not punctuation marks
+  tokens = [x for x in tokens if x not in stoplist and len(x) > 2 and not unicodedata.category(x[0]).startswith("P")]
   
   return tokens
 
@@ -123,6 +131,8 @@ def get_best_model(df: pd.DataFrame, tweet_col: str, language: str, k_list: list
         # Number of documents per topic
         doc_count = np.array(mgp.cluster_doc_count)
 
+        print(doc_count)
+
         # Most important clusters (by number of docs inside), sorted from most to least important
         top_index = doc_count.argsort()[-10:][::-1]
         topics = get_topics_lists(mgp, top_index, 20) 
@@ -133,13 +143,13 @@ def get_best_model(df: pd.DataFrame, tweet_col: str, language: str, k_list: list
           best_model, best_k, best_alpha, best_beta = mgp, k, a, b
           best_coherence = cur_coherence
 
-  # Save the best model
-  output_dir_name = dir_name + "_ClusterBestModels/"
-  if not os.path.exists(output_dir_name):
-    os.makedirs(output_dir_name)
-  with open(output_dir_name + language + ".model", "wb") as f:
-    pickle.dump(best_model, f)
-    f.close()
+        # Save the best model
+        output_dir_name = dir_name + "_ClusterBestModels/"
+        if not os.path.exists(output_dir_name):
+          os.makedirs(output_dir_name)
+        with open(output_dir_name + language + str(k) + ".model", "wb") as f:
+          pickle.dump(best_model, f)
+          f.close()
   
   print(f"\n--- Best model: k={best_k} alpha={best_alpha} beta={best_beta} ---\n")
 
@@ -163,19 +173,27 @@ def main(dir_name: str, tweet_col_pipe1: str, tweet_col_pipe3: str):
 
     language = rf.split(".")[0]
     # Skip the langauge if the stopwords for preprocessing are not available
-    if language.lower() not in stopwords.fileids() or language.lower() == "english":
+    if (language.lower() not in nltk_stopwords.fileids() and lang_codes[language] not in stopwordsiso.langs()) or language.lower() == "english":
       continue
     print(f"------ {language} ------")
 
     # Generate model from pipeline 1 clusters
-    model = get_best_model(df, tweet_col_pipe1, language, [80], [0.1, 0.3], [0.3, 0.5], dir_name)
+    if True:
+      model = get_best_model(df, tweet_col_pipe1, language, [100], [0.1], [0.1], dir_name)
+
+    # Load previously trained model instead
+    if False:
+      for k in [2, 10, 20, 50, 100]:
+        df = pd.read_csv(dir_name + "/" + rf)
+        f = open(f"{dir_name}_ClusterBestModels/{language}{k}.model", "rb")
+        model = pickle.load(f)
 
     # Generate cluster labels and append to df
     get_labels(df, tweet_col_pipe1, model, language)
-    get_labels(df, tweet_col_pipe3, model, language)
+    # get_labels(df, tweet_col_pipe3, model, language)
 
-    accuracy = accuracy_score(df[tweet_col_pipe1 + "_Cluster"], df[tweet_col_pipe3 + "_Cluster"])
-    print(accuracy)
+    # accuracy = accuracy_score(df[tweet_col_pipe1 + "_Cluster"], df[tweet_col_pipe3 + "_Cluster"])
+    # print(language, k, accuracy)
 
     # Output to file
     output_dir_name = dir_name + "_TopicClusterOutput"
@@ -195,7 +213,7 @@ if __name__ == "__main__":
   # tweet_col_pipe1 = args.tweet_column_name_pipe1
   # tweet_col_pipe3 = args.tweet_column_name_pipe3
 
-  dir_name = "EnglishToOriginalTweets_30000Sample"
+  dir_name = "Twitter Dataset New Languages_CleanOutput_5000Sample"
   tweet_col_pipe1 = "Tweet text_Clean"
   tweet_col_pipe3 = "ReverseTrans"
   main(dir_name, tweet_col_pipe1, tweet_col_pipe3)

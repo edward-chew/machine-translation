@@ -14,5 +14,8 @@ lang_codes = {
   "Slovak": "sk",
   "Slovenian": "sl",
   "Spanish": "es",
-  "Swedish": "sv"
+  "Swedish": "sv",
+  "Arabic": "ar",
+  "Chinese": "zh",
+  "Hindi": "hi"
 }

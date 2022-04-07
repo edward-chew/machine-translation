@@ -1,11 +1,11 @@
 # Machine Translation Demonstrating the Preservation of Semantic Content Across Multi-Language Dataset for use in State of the Art English-Trained Tools
 
 ## Datasets
-This project involves 17 languages.
+This project involves 18 languages.
 
 The datasets for Albanian, Bulgarian, English, German, Hungarian, Polish, Portuguese, Russian, Ser/Cro/Bos (Serbian, Croatian, and Bosnian), Slovak, Slovenian, Spanish, and Swedish are from *Multilingual Twitter Sentiment Classification: The Role of Human Annotators (Mozetič, Igor, et al.).* Paper found [here](https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0155036). Tweet ID dataset found [here](https://www.clarin.si/repository/xmlui/handle/11356/1054). 
 
-The datasets for Arabic and Chinese are from *TBCOV: Two Billion Multilingual COVID-19 Tweets with Sentiment, Entity, Geo, and Gender Labels (Imran, Muhammad, et al.)*. Paper found [here](https://www.mdpi.com/2306-5729/7/1/8). Tweet ID dataset found [here](https://crisisnlp.qcri.org/tbcov).
+The datasets for Arabic, Chinese, and Hindi are from *TBCOV: Two Billion Multilingual COVID-19 Tweets with Sentiment, Entity, Geo, and Gender Labels (Imran, Muhammad, et al.)*. Paper found [here](https://www.mdpi.com/2306-5729/7/1/8). Tweet ID dataset found [here](https://crisisnlp.qcri.org/tbcov).
 
 The input files of the scripts are files with the full tweet text, not tweet ID's.
 
@@ -30,7 +30,7 @@ This repository contains the following:
 
 ### Topic Clustering Task
 - **cluster.py**
-    - Assigns clusters to each tweet, once for Pipeline 1 and once for Pipeline 3.
+    - Assigns clusters to each tweet with [GSDMM](https://github.com/rwalk/gsdmm), once for Pipeline 1 and once for Pipeline 3.
 - **bootstrap_cluster.py**
     - Bootstraps the accuracies of the clustering.
 
@@ -46,8 +46,8 @@ This repository contains the following:
     The outputs a directory `/[file_directory]_[sample_size]Sample`.
 2. **Clean the tweets.**
 
-        python clean.py [file_directory] [tweet_column_name]
-    where `[file_directory]` is the directory of the tweet files and `[tweet_column_name]` is the name of the csv column of the tweets.
+        python clean.py [file_directory] [tweet_column_name] [sentiment_label_column_name]
+    where `[file_directory]` is the directory of the tweet files, `[tweet_column_name]` is the name of the csv column of the tweets, and `[sentiment_label_column_name]` is the name of the csv column of the correct sentiment label.
 
     The outputs a directory `/[file_directory]_CleanOutput`.
 3. **Translate and back translate the tweets.**
@@ -66,6 +66,8 @@ This repository contains the following:
 
         python cluster.py [file_directory] [tweet_column_name_pipe1] [tweet_column_name_pipe3]
     where `[file_directory]` is the directory of the tweet files (files with both the Pipeline 1 and Pipeline 3 text) and `[tweet_column_name_pipe1]` and `[tweet_column_name_pipe1]` are the names of the csv columns of the Pipeline 1 and Pipeline 3 tweet texts, respectively.
+
+    <ins>Word Embedding</ins>
 
 5. **Bootstrap the results.**
 
@@ -95,6 +97,6 @@ This repository contains the following:
         python bootstrap_cluster.py [file_directory] [cluster_column_name_pipe1] [cluster_column_name_pipe3]
     where `[file_directory]` is the directory of the tweet files with cluster labels, and `[cluster_column_name_pipe1]` and `[cluster_column_name_pipe3]` are the names of the csv columns of the Pipeline 1 and Pipeline 3 tweets' cluster labels, respectively.
 
-    This outputs a directory `/Bootstrappedluster`.
+    This outputs a directory `/BootstrappedCluster`.
 
 6. **Generate figures.** Rerun all cells of `results.ipynb`. Image files are saved to directory `/Figures`.
