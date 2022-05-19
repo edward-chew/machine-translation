@@ -14,7 +14,9 @@ This repository contains the following:
 - **clean.py**
     - Cleans the tweet text: removing return handles, Twitter handles, and number as well as makeing all text lowercase.
 - **translate.py**
-    - *(To be added)* Translates tweet text between English and the 15 other specified lanaguges, and vice versa.
+    - Translates tweet text from the 17 specified languages to English.
+- **back_translate.py**
+    - Translates tweet text from English back to the 17 specified languages.
 - **results.ipynb**
     - Generates figures.
 - **sample.py**
@@ -53,6 +55,8 @@ This repository contains the following:
 3. **Translate and back translate the tweets.**
 
         python translate.py [file_directory] [tweet_column_name]
+        python back_translate.py [file_directory] [tweet_column_name]
+    where `[file_directory]` is the directory of the tweet files (outputs of `clean.py` and `translate.py`) and `[tweet_column_name]` is the name of the csv column of the tweets.
 4. **Run semantic anaysis.**
 
     <ins>Sentiment Analysis</ins>
@@ -76,9 +80,11 @@ This repository contains the following:
         python bootstrap_sentiment.py [file_directory] [poly_label_column_name] [true_label_column_name]
     where `[file_directory]` is the directory of the tweet files with sentiment labels, `[poly_label_column_name]` is the name of the csv column of the Polyglot sentiment label, and `[true_label_column_name]` is the name of the csv column of the correct sentiment label.
 
+    Run the script once for each pipeline, which adds a subdirectory to `/BootstrappedSentiment`.
+
     This outputs a directory `/BootstrappedSentiment` of structure
 
-        Bootstrapped
+        BootstrappedSentiment
         ├── EnglishToOriginalTweets
         │   ├── AllTweets
         │   │   ├── Albanian.csv

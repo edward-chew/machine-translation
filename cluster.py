@@ -143,13 +143,13 @@ def get_best_model(df: pd.DataFrame, tweet_col: str, language: str, k_list: list
           best_model, best_k, best_alpha, best_beta = mgp, k, a, b
           best_coherence = cur_coherence
 
-        # Save the best model
-        output_dir_name = dir_name + "_ClusterBestModels/"
-        if not os.path.exists(output_dir_name):
-          os.makedirs(output_dir_name)
-        with open(output_dir_name + language + str(k) + ".model", "wb") as f:
-          pickle.dump(best_model, f)
-          f.close()
+  # Save the best model
+  output_dir_name = dir_name + "_ClusterBestModels/"
+  if not os.path.exists(output_dir_name):
+    os.makedirs(output_dir_name)
+  with open(output_dir_name + language + str(k) + ".model", "wb") as f:
+    pickle.dump(best_model, f)
+    f.close()
   
   print(f"\n--- Best model: k={best_k} alpha={best_alpha} beta={best_beta} ---\n")
 
@@ -179,27 +179,25 @@ def main(dir_name: str, tweet_col_pipe1: str, tweet_col_pipe3: str):
 
     # Generate model from pipeline 1 clusters
     if True:
-      model = get_best_model(df, tweet_col_pipe1, language, [100], [0.1], [0.1], dir_name)
+      for k in [5, 15, 50, 150]:
+        model = get_best_model(df, tweet_col_pipe1, language, [k], [0.1], [0.1], dir_name)
 
-    # Load previously trained model instead
-    if False:
-      for k in [2, 10, 20, 50, 100]:
-        df = pd.read_csv(dir_name + "/" + rf)
-        f = open(f"{dir_name}_ClusterBestModels/{language}{k}.model", "rb")
-        model = pickle.load(f)
+        # Generate cluster labels and append to df
+        get_labels(df, tweet_col_pipe1, model, language)
+        get_labels(df, tweet_col_pipe3, model, language)
 
-    # Generate cluster labels and append to df
-    get_labels(df, tweet_col_pipe1, model, language)
-    # get_labels(df, tweet_col_pipe3, model, language)
+        # Output to file
+        output_dir_name = f"{dir_name}_kTopicClusterOutput/{k}"
+        if not os.path.exists(output_dir_name):
+          os.makedirs(output_dir_name)
+        df.to_csv(output_dir_name + "/" + rf, index = False)
 
-    # accuracy = accuracy_score(df[tweet_col_pipe1 + "_Cluster"], df[tweet_col_pipe3 + "_Cluster"])
-    # print(language, k, accuracy)
-
-    # Output to file
-    output_dir_name = dir_name + "_TopicClusterOutput"
-    if not os.path.exists(output_dir_name):
-      os.makedirs(output_dir_name)
-    df.to_csv(output_dir_name + "/" + rf, index = False)
+        # Load previously trained model instead
+        if False:
+          for k in [2, 10, 20, 50, 100]:
+            df = pd.read_csv(dir_name + "/" + rf)
+            f = open(f"{dir_name}_ClusterBestModels/{language}{k}.model", "rb")
+            model = pickle.load(f)
 
 
 if __name__ == "__main__":
@@ -213,7 +211,7 @@ if __name__ == "__main__":
   # tweet_col_pipe1 = args.tweet_column_name_pipe1
   # tweet_col_pipe3 = args.tweet_column_name_pipe3
 
-  dir_name = "Twitter Dataset New Languages_CleanOutput_5000Sample"
+  dir_name = "Twitter Dataset New Languages_CleanOutput_10000Sample_EnglishToOriginal"
   tweet_col_pipe1 = "Tweet text_Clean"
   tweet_col_pipe3 = "ReverseTrans"
   main(dir_name, tweet_col_pipe1, tweet_col_pipe3)

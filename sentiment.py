@@ -6,6 +6,7 @@ import numpy as np
 from nptyping import Float64
 from lang_codes import lang_codes
 from sklearn.metrics import confusion_matrix
+from sklearn.metrics import accuracy_score
 import argparse
 
 # The main routine
@@ -22,7 +23,7 @@ def main(dir_name: str, tweet_col: str, true_label_col: str) -> None:
   for rf in sorted(os.listdir(dir_name)):
     df = pd.read_csv(dir_name + "/" + rf)
 
-    language = rf.split("_")[0]
+    language = rf.split(".")[0]
 
     # Get numerical sentiment
     poly_sentiment_col = f"{tweet_col}_Sentiment"
@@ -32,16 +33,16 @@ def main(dir_name: str, tweet_col: str, true_label_col: str) -> None:
     df[poly_label_col] = df.apply(lambda row: get_label(row.get(poly_sentiment_col)), axis = 1)
 
     # Print accuracies / stats
-    accuracy = calc_accuracy(df, poly_label_col, true_label_col)
+    accuracy = accuracy_score(df[true_label_col], df[poly_label_col])
     accuracies["overall"][language] = accuracy
     print(f"Accuracy of {language} is              {accuracy}")
 
     noneu_df = df[(df[poly_label_col] != "Neutral") & (df[true_label_col] != "Neutral")]
-    accuracy = calc_accuracy(noneu_df, poly_label_col, true_label_col)
+    accuracy = accuracy_score(noneu_df[true_label_col], noneu_df[poly_label_col])
     accuracies["no_neu"][language] = accuracy
     print(f"Accuracy of {language} w/o neutrals is {accuracy}")
 
-    count_labels(df, poly_label_col, true_label_col)
+    # count_labels(df, poly_label_col, true_label_col)
 
     # Confusion Matrix
     print_confusion_matrix(df, poly_label_col, true_label_col)
@@ -50,7 +51,7 @@ def main(dir_name: str, tweet_col: str, true_label_col: str) -> None:
     output_dir_name = dir_name + "_PolyglotSentimentOutput"
     if not os.path.exists(output_dir_name):
       os.makedirs(output_dir_name)
-    df.to_csv(output_dir_name + "/" + language, index = False)
+    df.to_csv(output_dir_name + "/" + language + ".csv", index = False)
 
   print(accuracies)
 
@@ -58,7 +59,7 @@ def main(dir_name: str, tweet_col: str, true_label_col: str) -> None:
 # Calculate accuracy of Polyglot labels
 def calc_accuracy(df, poly_label_col: str, true_label_col: str) -> float:
   correct_labels = df.apply(lambda row: True if row.get(true_label_col) == row.get(poly_label_col) else False, axis = 1)
-  return len(correct_labels[correct_labels == True].index) / len(df.index) 
+  return len(correct_labels[correct_labels == True].index) / len(df.index)
 
 
 # Generate confusion matrix
@@ -153,14 +154,18 @@ def get_polarity(tweet: str, lang: str) -> Float64:
 
 
 if __name__ == "__main__":
-  parser = argparse.ArgumentParser()
-  parser.add_argument("file_directory", default="Twitter Dataset_CleanOutput", help="Name of the directory the tweet files are in")
-  parser.add_argument("tweet_column_name", default="Tweet text_Clean", help="Name of the column the tweet text is in")
-  parser.add_argument("true_label_column_name", default="SentLabel", help="Name of column the correct label is in")
-  args = parser.parse_args()
+  # parser = argparse.ArgumentParser()
+  # parser.add_argument("file_directory", default="Twitter Dataset_CleanOutput", help="Name of the directory the tweet files are in")
+  # parser.add_argument("tweet_column_name", default="Tweet text_Clean", help="Name of the column the tweet text is in")
+  # parser.add_argument("true_label_column_name", default="SentLabel", help="Name of column the correct label is in")
+  # args = parser.parse_args()
 
-  dir_name = args.file_directory
-  tweet_col = args.tweet_column_name
-  true_label_col = args.true_label_column_name
+  # dir_name = args.file_directory
+  # tweet_col = args.tweet_column_name
+  # true_label_col = args.true_label_column_name
+
+  dir_name = "Twitter Dataset New Languages_CleanOutput_10000Sample_EnglishToOriginal_PolyglotSentimentOutput_PolyglotSentimentOutput"
+  tweet_col = "ReverseTrans"
+  true_label_col = "SentLabel"
 
   main(dir_name, tweet_col, true_label_col)

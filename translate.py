@@ -1,7 +1,6 @@
 import os
 import six
 import pandas as pd
-from lang_codes import lang_codes
 from google.cloud import translate_v2 as translate
 import argparse
 
@@ -27,7 +26,7 @@ def translate_text(target, text):
         return ""
 
 
-def main(dir_name):
+def main(dir_name, tweet_col):
     # Go through all the files in the specified directory
     for rf in sorted(os.listdir(dir_name)):
         print(rf)
@@ -35,17 +34,23 @@ def main(dir_name):
         df = pd.read_csv(dir_name + "/" + rf)
 
         df["TranslatedToEnglish"] = df.apply(lambda row:
-                                             translate_text("en", row.get("CleanTweetText")), axis=1)
+                                             translate_text("en", row.get(tweet_col)), axis=1)
 
-        df.to_csv(dir_name "_TranslatedToEnglish/" + rf, index=False)
+        output_dir_name = dir_name + "_TranslatedToEnglish"
+        if not os.path.exists(output_dir_name):
+            os.makedirs(output_dir_name)
+        df.to_csv(output_dir_name + "/" + rf, index=False)
 
 
 if __name__ == "__main__":
     # parser = argparse.ArgumentParser()
     # parser.add_argument("file_directory", default="Twitter Dataset_CleanOutput", help="Name of the directory the tweet files are in")
+    # parser.add_argument("tweet_column_name", default="Tweet text_Clean", help="Name of the column the tweet text is in")
     # args = parser.parse_args()
 
     # dir_name = args.file_directory
+    # tweet_col = args,tweet_column_name
     dir_name = "Twitter Dataset New Languages_CleanOutput_10000Sample"
+    tweet_col = "Tweet text_Clean"
 
-    main(dir_name)
+    main(dir_name, tweet_col)

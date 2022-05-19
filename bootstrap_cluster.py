@@ -15,7 +15,7 @@ def main(dir_name: str, cluster_pipe1: str, cluster_pipe3: str) -> None:
     accuracies = bootstrap(df, cluster_pipe3, cluster_pipe1)
 
     # Save the accuracies to csv
-    path = f"BootstrappedCluster/"
+    path = f"BootstrappedCluster_NewLanguages/"
     os.makedirs(path, exist_ok=True)  # Create the directory if it doesn't exist
     with open(path + rf, "w") as wf:
       writer = csv.writer(wf)
@@ -46,7 +46,7 @@ if __name__ == "__main__":
   # cluster_pipe1 = args.cluster_column_name_pipe1
   # cluster_pipe3 = args.cluster_column_name_pipe3
 
-  dir_name = "EnglishToOriginalTweets_30000Sample_TopicClusterOutput"
+  dir_name = "Twitter Dataset New Languages_CleanOutput_10000Sample_EnglishToOriginal_TopicClusterOutput"
   cluster_pipe1 = "Tweet text_Clean_Cluster"
   cluster_pipe3 = "ReverseTrans_Cluster"
   main(dir_name, cluster_pipe1, cluster_pipe3)

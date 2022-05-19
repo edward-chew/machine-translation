@@ -16,7 +16,7 @@ def main(dir_name: str, poly_label_col: str, true_label_col: str) -> None:
   for rf in sorted(os.listdir(dir_name)):
     df = pd.read_csv(dir_name + "/" + rf)
 
-    accuracies, noneu_accuracies = bootstrap(df, poly_label_col, true_label_col, sample_size=38105)
+    accuracies, noneu_accuracies = bootstrap(df, poly_label_col, true_label_col, sample_size=10000)
 
     # Save the accuracies to csv
     path = f"Bootstrapped/{dir_name.split('_')[0]}/AllTweets/"
@@ -89,7 +89,7 @@ if __name__ == "__main__":
   # poly_label_col = args.poly_label_column_name
   # true_label_col = args.true_label_column_name
 
-  dir_name = "EnglishToOriginalTweets_PolyglotSentimentOutput"  # Name of the directory the tweet files are in
+  dir_name = "Twitter Dataset New Languages_CleanOutput_10000Sample_EnglishToOriginal_PolyglotSentimentOutput"  # Name of the directory the tweet files are in
   poly_label_col = "ReverseTrans_Label"  # Name of the column the polyglot label is in
   true_label_col = "SentLabel"  # Name of column the correct label is in
   main(dir_name, poly_label_col, true_label_col)
