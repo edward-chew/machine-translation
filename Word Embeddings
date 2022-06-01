@@ -1,0 +1,104 @@
+from httpx import head
+from polyglot.mapping import Embedding
+lang_codes = {
+  "Albanian" : "sq",
+  "Bulgarian": "bg",
+  "English": "en",
+  "German": "de",
+  "Hungarian": "hu",
+  "Polish": "pl",
+  "Portuguese": "pt",
+  "Russian": "ru",
+  "Serbo-Croatian": "sh",
+  "Serbian": "sr",
+  "Croatian": "hr",
+  "Bosnian": "bs",
+  "Slovak": "sk",
+  "Slovenian": "sl",
+  "Spanish": "es",
+  "Swedish": "sv",
+  "Arabic": "ar",
+  "Chinese": "zh",
+  "Hindi": "hi"
+}
+import pandas as pd
+import numpy as np
+import os
+
+
+def calc_sent_embed(sent, scores, lang):
+    """
+    Compute w2v for a sentence with the format of ['WORD', 'WORD', 'WORD'...]
+    Return the sum of all word vector embeddings taken individually
+
+    @sent: a tweet in a full sentence
+    @scores: user inputs [], which is then populated with the average of each word and its neighbors
+    """
+
+    embeddings = Embedding.load(
+        f'/Users/friedahuang/polyglot_data/embeddings2/{lang}/embeddings_pkl.tar.bz2')
+    embeddings = embeddings.normalize_words()
+
+    for word in sent:
+        try:
+            # top_k = 10 is chosen for faster calculation
+            neighbors = embeddings.nearest_neighbors(word, top_k=10)
+            scores.append(np.sum(embeddings.distances(word, neighbors)))
+        except:
+            continue
+
+    return np.sum(scores)
+
+
+def original_trans_word_embed(original_sent, trans_sent, lang):
+    """
+    Return two scores: word embedding scores for @original_sent and @trans_sent
+
+    @original_sent: tweets in their native languages with a str type
+    @trans_sent: tweets after being translated into English and back into their original languages
+    """
+    try:
+        scores = [calc_sent_embed(original_sent.split(), [], lang),
+                  calc_sent_embed(trans_sent.split(), [], lang)]
+        return scores
+    except:
+        return ""
+
+
+def print_to_csv(df, output_dirname, language):
+    header = True
+    for index, row in df.iterrows():
+        we = original_trans_word_embed(
+            row['CleanTweetText'], row['ReverseTrans'], lang_codes[language])
+        df.at[index, 'WordEmbedding_NormSum'] = we
+
+        print(f'Index: {index}, {we}')
+
+        if index != 0:
+            header = False
+
+        # Output to file
+        if not os.path.exists(output_dirname):
+            os.makedirs(output_dirname)
+
+        df.loc[[index]].to_csv(output_dirname + "/" + language +
+                               "_normsum.csv", mode='a', index=False, header=header)
+
+
+def main(input_dirname, output_dirname):
+    # Go through all the files in the specified directory
+    for rf in sorted(os.listdir(input_dirname)):
+        print(rf)
+
+        df = pd.read_csv(input_dirname + "/" + rf)
+        language = rf.split("_")[0]
+
+        # Create an empty column WordEmbedding_NormSum
+        df['WordEmbedding_NormSum'] = None
+        print_to_csv(df, output_dirname, language)
+
+
+if __name__ == "__main__":
+    input_dirname = "Pipeline 3 EnglishToOriginalTweets"
+    output_dirname = "WordEmbeddingNormSum"
+    main(input_dirname, output_dirname)
