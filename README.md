@@ -33,16 +33,15 @@ This repository contains the following:
 ### Topic Clustering Task
 - **cluster.py**
     - Assigns clusters to each tweet with [GSDMM](https://github.com/rwalk/gsdmm), once for Pipeline 1 and once for Pipeline 3.
-- **bootstrap_cluster.py**
-    - Bootstraps the accuracies of the clustering.
 
 ### Word Embedding Task
-- 
+- **word_embedding.py**
+    - Calculates the Euclidean distance between the Pipeline 1 and Pipeline 3 tweets.
 
 ## Usage
 1. **Sample the dataset.**
 
-        python clean.py [file_directory] [sample_size]
+        python sample.py [file_directory] [sample_size]
     where `[file_directory]` is the directory of the tweet files and `[sample_size]` is number of tweets to sample.
 
     The outputs a directory `/[file_directory]_[sample_size]Sample`.
@@ -71,21 +70,30 @@ This repository contains the following:
         python cluster.py [file_directory] [tweet_column_name_pipe1] [tweet_column_name_pipe3]
     where `[file_directory]` is the directory of the tweet files (files with both the Pipeline 1 and Pipeline 3 text) and `[tweet_column_name_pipe1]` and `[tweet_column_name_pipe1]` are the names of the csv columns of the Pipeline 1 and Pipeline 3 tweet texts, respectively.
 
+    The outputs two directories:
+    1. `/[file_directory]_kTopicClusterOutput` with the main results
+    2. `/[file_directory]_ClusterBestModels` with the saved models
+
     <ins>Word Embedding</ins>
+
+        python word_embedding.py [file_directory] [tweet_column_name_pipe1] [tweet_column_name_pipe3]
+    where `[file_directory]` is the directory of the tweet files (files with both the Pipeline 1 and Pipeline 3 text) and `[tweet_column_name_pipe1]` and `[tweet_column_name_pipe1]` are the names of the csv columns of the Pipeline 1 and Pipeline 3 tweet texts, respectively.
+
+    The outputs a directory `/[file_directory]_EmbeddingsOutput`.
 
 5. **Bootstrap the results.**
 
     <ins>Sentiment Analysis</ins>
 
-        python bootstrap_sentiment.py [file_directory] [poly_label_column_name] [true_label_column_name]
-    where `[file_directory]` is the directory of the tweet files with sentiment labels, `[poly_label_column_name]` is the name of the csv column of the Polyglot sentiment label, and `[true_label_column_name]` is the name of the csv column of the correct sentiment label.
+        python bootstrap_sentiment.py [file_directory] [poly_label_column_name] [true_label_column_name] [skip_english]
+    where `[file_directory]` is the directory of the tweet files with sentiment labels, `[poly_label_column_name]` is the name of the csv column of the Polyglot sentiment label, `[true_label_column_name]` is the name of the csv column of the correct sentiment label, and `[skip_english]` indicates whether to skip the `English.csv` file.
 
     Run the script once for each pipeline, which adds a subdirectory to `/BootstrappedSentiment`.
 
-    This outputs a directory `/BootstrappedSentiment` of structure
+    This outputs a directory `/[file_directory]_BootstrappedResults` of structure
 
         BootstrappedSentiment
-        ├── EnglishToOriginalTweets
+        ├── ReverseTrans_Label
         │   ├── AllTweets
         │   │   ├── Albanian.csv
         │   │   ├── ... All other languages
@@ -94,15 +102,8 @@ This repository contains the following:
         │       ├── Albanian.csv
         │       ├── ...
         │       └── Swedish.csv
-        ├── TranslatedToEnglishTweets
-        └── Twitter\ Dataset
+        ├── TranslatedToEnglish_Label
+        └── Tweet text_Clean_Label
     `/TranslatedToEnglishTweets` and `/Twitter Dataset` have the same structure as `/EnglishToOriginalTweets`. `/NoNeuTweets` contains accuracies excluding true Neutral tweets and tweets labeled Neutral, while `AllTweets` contains accuracies using all tweet types.
-
-    <ins>Topic Clustering</ins>
-
-        python bootstrap_cluster.py [file_directory] [cluster_column_name_pipe1] [cluster_column_name_pipe3]
-    where `[file_directory]` is the directory of the tweet files with cluster labels, and `[cluster_column_name_pipe1]` and `[cluster_column_name_pipe3]` are the names of the csv columns of the Pipeline 1 and Pipeline 3 tweets' cluster labels, respectively.
-
-    This outputs a directory `/BootstrappedCluster`.
 
 6. **Generate figures.** Rerun all cells of `results.ipynb`. Image files are saved to directory `/Figures`.

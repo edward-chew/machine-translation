@@ -164,7 +164,7 @@ if __name__ == "__main__":
   # tweet_col = args.tweet_column_name
   # true_label_col = args.true_label_column_name
 
-  dir_name = "Twitter Dataset New Languages_CleanOutput_10000Sample_EnglishToOriginal_PolyglotSentimentOutput_PolyglotSentimentOutput"
+  dir_name = "0_AllTranslationsCombined_Sampled_PolyglotSentimentOutput"
   tweet_col = "ReverseTrans"
   true_label_col = "SentLabel"
 

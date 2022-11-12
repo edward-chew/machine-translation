@@ -179,7 +179,7 @@ def main(dir_name: str, tweet_col_pipe1: str, tweet_col_pipe3: str):
 
     # Generate model from pipeline 1 clusters
     if True:
-      for k in [5, 15, 50, 150]:
+      for k in [2, 5, 10, 15, 20, 50, 100, 150, 200]:
         model = get_best_model(df, tweet_col_pipe1, language, [k], [0.1], [0.1], dir_name)
 
         # Generate cluster labels and append to df
@@ -211,7 +211,7 @@ if __name__ == "__main__":
   # tweet_col_pipe1 = args.tweet_column_name_pipe1
   # tweet_col_pipe3 = args.tweet_column_name_pipe3
 
-  dir_name = "Twitter Dataset New Languages_CleanOutput_10000Sample_EnglishToOriginal"
+  dir_name = "0_AllTranslationsCombined_Sampled"
   tweet_col_pipe1 = "Tweet text_Clean"
   tweet_col_pipe3 = "ReverseTrans"
   main(dir_name, tweet_col_pipe1, tweet_col_pipe3)
