@@ -76,7 +76,7 @@ This repository contains the following:
 
     <ins>Word Embedding</ins>
 
-            python word_embedding.py [file_directory] [tweet_column_name_pipe1] [tweet_column_name_pipe3]
+        python word_embedding.py [file_directory] [tweet_column_name_pipe1] [tweet_column_name_pipe3]
     where `[file_directory]` is the directory of the tweet files (files with both the Pipeline 1 and Pipeline 3 text) and `[tweet_column_name_pipe1]` and `[tweet_column_name_pipe1]` are the names of the csv columns of the Pipeline 1 and Pipeline 3 tweet texts, respectively.
 
     The outputs a directory `/[file_directory]_EmbeddingsOutput`.
