@@ -43,14 +43,12 @@ def main(dir_name, tweet_col):
 
 
 if __name__ == "__main__":
-    # parser = argparse.ArgumentParser()
-    # parser.add_argument("file_directory", default="Twitter Dataset_CleanOutput", help="Name of the directory the tweet files are in")
-    # parser.add_argument("tweet_column_name", default="Tweet text_Clean", help="Name of the column the tweet text is in")
-    # args = parser.parse_args()
+    parser = argparse.ArgumentParser()
+    parser.add_argument("file_directory", default="Twitter Dataset_CleanOutput", help="Name of the directory the tweet files are in")
+    parser.add_argument("tweet_column_name", default="Tweet text_Clean", help="Name of the column the tweet text is in")
+    args = parser.parse_args()
 
-    # dir_name = args.file_directory
-    # tweet_col = args,tweet_column_name
-    dir_name = "Twitter Dataset New Languages_CleanOutput_10000Sample"
-    tweet_col = "Tweet text_Clean"
+    dir_name = args.file_directory
+    tweet_col = args.tweet_column_name
 
     main(dir_name, tweet_col)

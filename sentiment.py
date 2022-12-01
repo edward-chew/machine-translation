@@ -154,18 +154,14 @@ def get_polarity(tweet: str, lang: str) -> Float64:
 
 
 if __name__ == "__main__":
-  # parser = argparse.ArgumentParser()
-  # parser.add_argument("file_directory", default="Twitter Dataset_CleanOutput", help="Name of the directory the tweet files are in")
-  # parser.add_argument("tweet_column_name", default="Tweet text_Clean", help="Name of the column the tweet text is in")
-  # parser.add_argument("true_label_column_name", default="SentLabel", help="Name of column the correct label is in")
-  # args = parser.parse_args()
+  parser = argparse.ArgumentParser()
+  parser.add_argument("file_directory", default="Twitter Dataset_CleanOutput", help="Name of the directory the tweet files are in")
+  parser.add_argument("tweet_column_name", default="Tweet text_Clean", help="Name of the column the tweet text is in")
+  parser.add_argument("true_label_column_name", default="SentLabel", help="Name of column the correct label is in")
+  args = parser.parse_args()
 
-  # dir_name = args.file_directory
-  # tweet_col = args.tweet_column_name
-  # true_label_col = args.true_label_column_name
-
-  dir_name = "0_AllTranslationsCombined_Sampled_PolyglotSentimentOutput"
-  tweet_col = "ReverseTrans"
-  true_label_col = "SentLabel"
+  dir_name = args.file_directory
+  tweet_col = args.tweet_column_name
+  true_label_col = args.true_label_column_name
 
   main(dir_name, tweet_col, true_label_col)

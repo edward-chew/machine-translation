@@ -89,20 +89,16 @@ def bootstrap(df, poly_label_col: str, true_label_col: str, sample_size: int=0):
 
 
 if __name__ == "__main__":
-  # parser = argparse.ArgumentParser()
-  # parser.add_argument("file_directory", default="Twitter Dataset_CleanOutput", help="Name of the directory the tweet files are in")
-  # parser.add_argument("poly_label_column_name", default="Tweet text_Clean_Label", help="Name of the column the Polyglot label is in")
-  # parser.add_argument("true_label_column_name", default="SentLabel", help="Name of column the correct label is in")
-  # parser.add_argument("skip_english", default=False, help="Whether to skip the English.csv file")
-  # args = parser.parse_args()
+  parser = argparse.ArgumentParser()
+  parser.add_argument("file_directory", default="Twitter Dataset_CleanOutput", help="Name of the directory the tweet files are in")
+  parser.add_argument("poly_label_column_name", default="Tweet text_Clean_Label", help="Name of the column the Polyglot label is in")
+  parser.add_argument("true_label_column_name", default="SentLabel", help="Name of column the correct label is in")
+  parser.add_argument("skip_english", default=False, help="Whether to skip the English.csv file")
+  args = parser.parse_args()
 
-  # dir_name = args.file_directory
-  # poly_label_col = args.poly_label_column_name
-  # true_label_col = args.true_label_column_name
-  # skip_english = args.skip_english
+  dir_name = args.file_directory
+  poly_label_col = args.poly_label_column_name
+  true_label_col = args.true_label_column_name
+  skip_english = args.skip_english
 
-  dir_name = "0_AllTranslationsCombined_Sampled_PolyglotSentimentOutput"  # Name of the directory the tweet files are in
-  poly_label_col = "ReverseTrans_Label"  # Name of the column the polyglot label is in
-  true_label_col = "SentLabel"  # Name of column the correct label is in
-  skip_english = True # If English should be skipped
   main(dir_name, poly_label_col, true_label_col, skip_english)

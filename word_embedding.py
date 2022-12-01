@@ -1,5 +1,6 @@
 import os
 import math
+import argparse
 from types import NoneType
 from polyglot.mapping import Embedding
 from lang_codes import lang_codes
@@ -7,7 +8,7 @@ import numpy as np
 import pandas as pd
 from polyglot.text import Text
 
-import time ###
+import time
 
 def sentence_embedding(embeddings, sentence : str, language : str) -> np.array:
     """Returns the sentence embedding (sum of word embeddings)
@@ -128,19 +129,15 @@ def main(dir_name : str, tweet_col_pipe1 : str, tweet_col_pipe3 : str) -> None:
 
 
 if __name__ == '__main__':
-  # parser = argparse.ArgumentParser()
-  # parser.add_argument("file_directory", default="Twitter Dataset_CleanOutput", help="Name of the directory the tweet files are in")
-  # parser.add_argument("tweet_column_name_pipe1", default="Tweet text_Clean", help="Name of the column the Pipeline 1 cleaned tweet text is in")
-  # parser.add_argument("tweet_column_name_pipe3", default="Tweet text_Clean", help="Name of the column the Pipeline 3 tweet text is in")
-  # args = parser.parse_args()
+  parser = argparse.ArgumentParser()
+  parser.add_argument("file_directory", default="Twitter Dataset_CleanOutput", help="Name of the directory the tweet files are in")
+  parser.add_argument("tweet_column_name_pipe1", default="Tweet text_Clean", help="Name of the column the Pipeline 1 cleaned tweet text is in")
+  parser.add_argument("tweet_column_name_pipe3", default="Tweet text_Clean", help="Name of the column the Pipeline 3 tweet text is in")
+  args = parser.parse_args()
 
-  # dir_name = args.file_directory
-  # tweet_col_pipe1 = args.tweet_column_name_pipe1
-  # tweet_col_pipe3 = args.tweet_column_name_pipe3
-
-  dir_name = '0_AllTranslationsCombined_Sampled_5000'
-  tweet_col_pipe1 = 'Tweet text_Clean'
-  tweet_col_pipe3 = 'ReverseTrans'
+  dir_name = args.file_directory
+  tweet_col_pipe1 = args.tweet_column_name_pipe1
+  tweet_col_pipe3 = args.tweet_column_name_pipe3
 
   start_time = time.time()
   main(dir_name, tweet_col_pipe1, tweet_col_pipe3)

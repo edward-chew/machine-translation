@@ -3,7 +3,7 @@
 ## Datasets
 This project involves 18 languages.
 
-The datasets for Albanian, Bulgarian, English, German, Hungarian, Polish, Portuguese, Russian, Ser/Cro/Bos (Serbian, Croatian, and Bosnian), Slovak, Slovenian, Spanish, and Swedish are from *Multilingual Twitter Sentiment Classification: The Role of Human Annotators (Mozetič, Igor, et al.).* Paper found [here](https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0155036). Tweet ID dataset found [here](https://www.clarin.si/repository/xmlui/handle/11356/1054). 
+The datasets for Albanian, Bulgarian, English, German, Hungarian, Polish, Portuguese, Russian, Serbia (later excluded), Croatian, Bosnian, Slovak, Slovenian, Spanish, and Swedish are from *Multilingual Twitter Sentiment Classification: The Role of Human Annotators (Mozetič, Igor, et al.).* Paper found [here](https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0155036). Tweet ID dataset found [here](https://www.clarin.si/repository/xmlui/handle/11356/1054). 
 
 The datasets for Arabic, Chinese, and Hindi are from *TBCOV: Two Billion Multilingual COVID-19 Tweets with Sentiment, Entity, Geo, and Gender Labels (Imran, Muhammad, et al.)*. Paper found [here](https://www.mdpi.com/2306-5729/7/1/8). Tweet ID dataset found [here](https://crisisnlp.qcri.org/tbcov).
 
@@ -86,7 +86,7 @@ This repository contains the following:
     <ins>Sentiment Analysis</ins>
 
         python bootstrap_sentiment.py [file_directory] [poly_label_column_name] [true_label_column_name] [skip_english]
-    where `[file_directory]` is the directory of the tweet files with sentiment labels, `[poly_label_column_name]` is the name of the csv column of the Polyglot sentiment label, `[true_label_column_name]` is the name of the csv column of the correct sentiment label, and `[skip_english]` indicates whether to skip the `English.csv` file.
+    where `[file_directory]` is the directory of the tweet files with sentiment labels, `[poly_label_column_name]` is the name of the csv column of the Polyglot sentiment label, `[true_label_column_name]` is the name of the csv column of the correct sentiment label, and `[skip_english]` indicates whether to skip the `English.csv` file. Skipping English is useful for the translated pipelines since no translation was done, and therefore there are no sentiment scores.
 
     Run the script once for each pipeline, which adds a subdirectory to `/BootstrappedSentiment`.
 

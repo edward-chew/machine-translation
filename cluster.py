@@ -7,6 +7,7 @@ import gsdmm
 import pickle
 import stopwordsiso
 import unicodedata
+import argparse
 from gsdmm import MovieGroupProcess
 from tqdm import tqdm
 from nltk.corpus import stopwords as nltk_stopwords
@@ -201,17 +202,14 @@ def main(dir_name: str, tweet_col_pipe1: str, tweet_col_pipe3: str):
 
 
 if __name__ == "__main__":
-  # parser = argparse.ArgumentParser()
-  # parser.add_argument("file_directory", default="Twitter Dataset_CleanOutput", help="Name of the directory the tweet files are in")
-  # parser.add_argument("tweet_column_name_pipe1", default="Tweet text_Clean", help="Name of the column the Pipeline 1 cleaned tweet text is in")
-  # parser.add_argument("tweet_column_name_pipe3", default="Tweet text_Clean", help="Name of the column the Pipeline 3 tweet text is in")
-  # args = parser.parse_args()
+  parser = argparse.ArgumentParser()
+  parser.add_argument("file_directory", default="Twitter Dataset_CleanOutput", help="Name of the directory the tweet files are in")
+  parser.add_argument("tweet_column_name_pipe1", default="Tweet text_Clean", help="Name of the column the Pipeline 1 cleaned tweet text is in")
+  parser.add_argument("tweet_column_name_pipe3", default="Tweet text_Clean", help="Name of the column the Pipeline 3 tweet text is in")
+  args = parser.parse_args()
 
-  # dir_name = args.file_directory
-  # tweet_col_pipe1 = args.tweet_column_name_pipe1
-  # tweet_col_pipe3 = args.tweet_column_name_pipe3
+  dir_name = args.file_directory
+  tweet_col_pipe1 = args.tweet_column_name_pipe1
+  tweet_col_pipe3 = args.tweet_column_name_pipe3
 
-  dir_name = "0_AllTranslationsCombined_Sampled"
-  tweet_col_pipe1 = "Tweet text_Clean"
-  tweet_col_pipe3 = "ReverseTrans"
   main(dir_name, tweet_col_pipe1, tweet_col_pipe3)
