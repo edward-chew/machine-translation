@@ -106,4 +106,4 @@ This repository contains the following:
         └── Tweet text_Clean_Label
     `/TranslatedToEnglishTweets` and `/Twitter Dataset` have the same structure as `/EnglishToOriginalTweets`. `/NoNeuTweets` contains accuracies excluding true Neutral tweets and tweets labeled Neutral, while `AllTweets` contains accuracies using all tweet types.
 
-6. **Generate figures.** Rerun all cells of `results.ipynb`. Image files are saved to directory `/Figures`.
+6. **Generate figures.** Rerun all cells of `results.ipynb`. Image files are saved to directory `/Figures`. Directory names in `results.ipynb` are hardcoded, and may need to be updated in the "Reading Data" section.
