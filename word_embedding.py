@@ -1,13 +1,12 @@
 import os
-import math
 import argparse
 from types import NoneType
 from polyglot.mapping import Embedding
 from lang_codes import lang_codes
 import numpy as np
 import pandas as pd
+from scipy.spatial import distance
 from polyglot.text import Text
-
 import time
 
 def sentence_embedding(embeddings, sentence : str, language : str) -> np.array:
@@ -27,24 +26,25 @@ def sentence_embedding(embeddings, sentence : str, language : str) -> np.array:
     return sent_embedding
 
 
-def sentence_euclidean_distance(embeddings, language : str, sentence1 : str, sentence2 : str) -> list[float]:
-    """Returns the euclidean distance between two sentences
+def sentence_cosine_distance(embeddings, language : str, sentence1 : str, sentence2 : str) -> list[float]:
+    """Returns the cosine distance between two sentences
 
     Args:
         embeddings (Embedding): the Embeddings object
         langauge (str): full name of the language of sentences
-        sentence1 (str): space separated sentence
-        sentence2 (str): space separated sentence
+        sentence1 (str): sentence
+        sentence2 (str): sentence
 
     Returns:
-        float: Euclidean distance or np.nan if either sentence is empty
+        float: Cosine distance or np.nan if either sentence is empty
     """
     if isinstance(sentence1, (float, NoneType)) or isinstance(sentence2, (float, NoneType)):
         return None
 
-    diff = sentence_embedding(embeddings, sentence2, language) - sentence_embedding(embeddings, sentence1, language)
-    distance = np.linalg.norm(diff)
-    return distance
+    sent1 = sentence_embedding(embeddings, sentence1, language)
+    sent2 = sentence_embedding(embeddings, sentence2, language)
+    
+    return distance.cosine(sent1, sent2)
 
 
 def baseline_distance(embeddings, language : str, df : pd.DataFrame, sentence_col : str) -> tuple[float, float]:
@@ -82,8 +82,8 @@ def min_avg_distance(embeddings, language : str, df : pd.DataFrame, sentence : s
         dict: Includes 'Min' and 'Mean'
     """
 
-    dists = df.apply(lambda row: sentence_euclidean_distance(embeddings, language, sentence, row.get(sentence_col)), axis=1)
-    dists = dists[dists > 0]
+    dists = df.apply(lambda row: sentence_cosine_distance(embeddings, language, sentence, row.get(sentence_col)), axis=1)
+    dists = dists[dists != 0]
 
     return {
         'Min': dists.min(),
@@ -113,7 +113,7 @@ def main(dir_name : str, tweet_col_pipe1 : str, tweet_col_pipe3 : str) -> None:
         embeddings = Embedding.load(f'/Users/edwardchew/polyglot_data/embeddings2/{lang_codes[language]}/embeddings_pkl.tar.bz2')
         embeddings = embeddings.normalize_words()
 
-        df['SentenceDistance'] = df.apply(lambda row: sentence_euclidean_distance(embeddings, language, row.get(tweet_col_pipe1), row.get(tweet_col_pipe3)), axis = 1)
+        df['SentenceDistance'] = df.apply(lambda row: sentence_cosine_distance(embeddings, language, row.get(tweet_col_pipe1), row.get(tweet_col_pipe3)), axis = 1)
 
         # Drop rows without an embedding
         df = df.dropna(subset=['SentenceDistance'])
