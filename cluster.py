@@ -8,15 +8,20 @@ import pickle
 import stopwordsiso
 import unicodedata
 import argparse
+import nltk
+import time
 from gsdmm import MovieGroupProcess
 from tqdm import tqdm
 from nltk.corpus import stopwords as nltk_stopwords
 from nltk.tokenize import word_tokenize
+from nltk.parse import CoreNLPParser
 from stopwordsiso import stopwords as iso_stopwords
 from sklearn.metrics import accuracy_score
 from gensim.corpora import Dictionary
 from gensim.models.coherencemodel import CoherenceModel
 from lang_codes import lang_codes
+
+PUNKTLANGS = ["czech", "danish", "dutch", "english", "estonian", "finnish", "french", "german", "greek", "italian", "malayalam", "norwegian", "polish", "portuguese", "russian", "slovenian", "spanish", "swedish", "turkish", "arabic", "chinese"]
 
 
 def remove_emojis(text):
@@ -30,6 +35,13 @@ def remove_emojis(text):
 
 
 def tokenize(text, lang):
+  """
+  Returns text as a list of tokens, stopwords removed.
+  
+  text: text to tokenize
+  lang: language of text, lowercase
+  """
+
   # Checks for null strings
   if isinstance(text, float):
     return []
@@ -40,9 +52,23 @@ def tokenize(text, lang):
     stoplist = nltk_stopwords.words(lang.lower())
   else:
     stoplist = list(iso_stopwords(lang_codes[lang.title()]))
-  tokens = word_tokenize(text)
+  
+  # Chinese and Arabic use different tokenizer
+  if lang == "chinese":
+    parser = CoreNLPParser('http://localhost:9001')
+    tokens = list(parser.tokenize(text))
+  elif lang == "arabic":
+    parser = CoreNLPParser('http://localhost:9005')
+    tokens = list(parser.tokenize(text))
+  elif lang == "slovenian":
+    tokens = word_tokenize(text, language="slovene")
+  else:
+    tokens = word_tokenize(text, language=lang)
+
   # Only include tokens that aren't stop words, are more than 2 characters long, and are not punctuation marks
-  tokens = [x for x in tokens if x not in stoplist and len(x) > 2 and not unicodedata.category(x[0]).startswith("P")]
+  tokens = [x for x in tokens if x not in stoplist and not unicodedata.category(x[0]).startswith("P")]
+  if lang != "chinese":
+    tokens = [x for x in tokens if len(x) > 2 and len(x) <= 15]
   
   return tokens
 
@@ -159,6 +185,10 @@ def get_best_model(df: pd.DataFrame, tweet_col: str, language: str, k_list: list
 
 # Get coherence score for a model
 def get_coherence(topics, dictionary, bow_corpus, docs):
+  for t in topics:
+    if not t:
+      raise ValueError("Topic has no tokens to define it")
+
   cm_gsdmm = CoherenceModel(topics=topics, 
                             dictionary=dictionary, 
                             corpus=bow_corpus, 
@@ -174,7 +204,10 @@ def main(dir_name: str, tweet_col_pipe1: str, tweet_col_pipe3: str):
 
     language = rf.split(".")[0]
     # Skip the langauge if the stopwords for preprocessing are not available
-    if (language.lower() not in nltk_stopwords.fileids() and lang_codes[language] not in stopwordsiso.langs()) or language.lower() == "english":
+    if ((language.lower() not in nltk_stopwords.fileids() and lang_codes[language] not in stopwordsiso.langs())
+        or language.lower() not in PUNKTLANGS
+        or language.lower() == "english"):
+      print(f"------ Skipping {language} ------")
       continue
     print(f"------ {language} ------")
 
@@ -212,4 +245,6 @@ if __name__ == "__main__":
   tweet_col_pipe1 = args.tweet_column_name_pipe1
   tweet_col_pipe3 = args.tweet_column_name_pipe3
 
+  start_time = time.time()
   main(dir_name, tweet_col_pipe1, tweet_col_pipe3)
+  print("--- %s seconds ---" % (time.time() - start_time))
