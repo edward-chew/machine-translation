@@ -2,7 +2,6 @@ from polyglot.text import Text
 from polyglot.detect.base import logger as polyglot_logger
 import os
 import pandas as pd
-import numpy as np
 from nptyping import Float64
 from lang_codes import lang_codes
 from sklearn.metrics import confusion_matrix
@@ -14,8 +13,6 @@ def main(dir_name: str, tweet_col: str, true_label_col: str) -> None:
   # Silence error messages
   polyglot_logger.setLevel("ERROR")
 
-  print("--- Results ---")
-
   accuracies = { "overall" : {},
                  "no_neu"  : {} }
 
@@ -24,6 +21,7 @@ def main(dir_name: str, tweet_col: str, true_label_col: str) -> None:
     df = pd.read_csv(dir_name + "/" + rf)
 
     language = rf.split(".")[0]
+    print(f"------ {language} ------")
 
     # Get numerical sentiment
     poly_sentiment_col = f"{tweet_col}_Sentiment"
@@ -35,31 +33,54 @@ def main(dir_name: str, tweet_col: str, true_label_col: str) -> None:
     # Print accuracies / stats
     accuracy = accuracy_score(df[true_label_col], df[poly_label_col])
     accuracies["overall"][language] = accuracy
-    print(f"Accuracy of {language} is              {accuracy}")
+    print(f"Accuracy              {round(accuracy, 2)}")
 
     noneu_df = df[(df[poly_label_col] != "Neutral") & (df[true_label_col] != "Neutral")]
     accuracy = accuracy_score(noneu_df[true_label_col], noneu_df[poly_label_col])
     accuracies["no_neu"][language] = accuracy
-    print(f"Accuracy of {language} w/o neutrals is {accuracy}")
+    print(f"Accuracy w/o neutrals {round(accuracy, 2)}")
 
+    # Uncomment to print more stats
     # count_labels(df, poly_label_col, true_label_col)
-
-    # Confusion Matrix
-    print_confusion_matrix(df, poly_label_col, true_label_col)
+    # print_confusion_matrix(df, poly_label_col, true_label_col)
 
     # Output to file
-    output_dir_name = dir_name + "_PolyglotSentimentOutput"
+    output_dir_name = dir_name + "_Sentiment"
     if not os.path.exists(output_dir_name):
       os.makedirs(output_dir_name)
     df.to_csv(output_dir_name + "/" + language + ".csv", index = False)
-
-  print(accuracies)
 
 
 # Calculate accuracy of Polyglot labels
 def calc_accuracy(df, poly_label_col: str, true_label_col: str) -> float:
   correct_labels = df.apply(lambda row: True if row.get(true_label_col) == row.get(poly_label_col) else False, axis = 1)
   return len(correct_labels[correct_labels == True].index) / len(df.index)
+
+
+# Convert numerical polarity to text label
+def get_label(polarity: Float64) -> str:
+  if polarity is None:
+    return ""
+  
+  sentiment = "Neutral"
+  if polarity < 0:
+    sentiment = "Negative"
+  elif polarity > 0:
+    sentiment = "Positive"
+  
+  return sentiment
+
+
+# Get polyglot polarity
+def get_polarity(tweet: str, lang: str) -> Float64:
+  t = Text(str(tweet), hint_language_code = lang_codes[lang])
+  assert(t.language.code == lang_codes[lang])
+
+  # Sentiment detector fails when polarity is 0
+  try:
+    return t.polarity
+  except ZeroDivisionError as e:
+    return 0
 
 
 # Generate confusion matrix
@@ -127,37 +148,11 @@ def check_label(row, poly_label_col: str, true_label_col: str):
     return "pos mislabled as neg"
 
 
-# Convert numerical polarity to text label
-def get_label(polarity: Float64) -> str:
-  if polarity is None:
-    return ""
-  
-  sentiment = "Neutral"
-  if polarity < 0:
-    sentiment = "Negative"
-  elif polarity > 0:
-    sentiment = "Positive"
-  
-  return sentiment
-
-
-# Get polyglot polarity
-def get_polarity(tweet: str, lang: str) -> Float64:
-  t = Text(str(tweet), hint_language_code = lang_codes[lang])
-  assert(t.language.code == lang_codes[lang])
-
-  # Sentiment detector fails when polarity is 0
-  try:
-    return t.polarity
-  except ZeroDivisionError as e:
-    return 0
-
-
 if __name__ == "__main__":
   parser = argparse.ArgumentParser()
-  parser.add_argument("file_directory", default="Twitter Dataset_CleanOutput", help="Name of the directory the tweet files are in")
-  parser.add_argument("tweet_column_name", default="Tweet text_Clean", help="Name of the column the tweet text is in")
-  parser.add_argument("true_label_column_name", default="SentLabel", help="Name of column the correct label is in")
+  parser.add_argument("file_directory", help="Name of the directory the tweet files are in")
+  parser.add_argument("tweet_column_name", help="Name of the column the tweet text is in")
+  parser.add_argument("true_label_column_name", help="Name of column the correct label is in")
   args = parser.parse_args()
 
   dir_name = args.file_directory

@@ -43,7 +43,8 @@ def sentence_cosine_distance(embeddings, language : str, sentence1 : str, senten
 
     sent1 = sentence_embedding(embeddings, sentence1, language)
     sent2 = sentence_embedding(embeddings, sentence2, language)
-    
+
+    # May trigger warning for small sent1 and sent2 values, which return nan
     return distance.cosine(sent1, sent2)
 
 
@@ -92,19 +93,23 @@ def min_avg_distance(embeddings, language : str, df : pd.DataFrame, sentence : s
 
 
 def main(dir_name : str, tweet_col_pipe1 : str, tweet_col_pipe3 : str) -> None:
-    baseline_df = pd.DataFrame(columns=['Language', 'Baseline Min', 'Baseline Mean'])
-
     # Create directory if doesn't already exist
     output_dir_name = f'{dir_name}_EmbeddingsOutput'
     if not os.path.exists(output_dir_name):
         os.makedirs(output_dir_name)
 
+    # Read existing file, in case script was run on files in parts
+    if os.path.exists(output_dir_name + '/Baseline.csv'):
+        baseline_df = pd.read_csv(output_dir_name + '/Baseline.csv')
+    else:
+        baseline_df = pd.DataFrame(columns=['Language', 'Baseline Min', 'Baseline Mean'])
+
     # Go through all the files in the specified directory
     for rf in sorted(os.listdir(dir_name)):
-        print(rf)
-
         df = pd.read_csv(dir_name + '/' + rf)
         language = rf.split('.')[0]
+
+        print(f'------ {language} ------')
 
         if language == 'English':
             print('   skipping...')
@@ -125,14 +130,14 @@ def main(dir_name : str, tweet_col_pipe1 : str, tweet_col_pipe3 : str) -> None:
         stats = baseline_distance(embeddings, language, df, tweet_col_pipe1)
         baseline_df.loc[len(baseline_df.index)] = [language, stats[0], stats[1]]
     
-    baseline_df.to_csv(output_dir_name + '/Baseline.csv', index = False)
+        baseline_df.to_csv(output_dir_name + '/Baseline.csv', index = False)
 
 
 if __name__ == '__main__':
   parser = argparse.ArgumentParser()
-  parser.add_argument("file_directory", default="Twitter Dataset_CleanOutput", help="Name of the directory the tweet files are in")
-  parser.add_argument("tweet_column_name_pipe1", default="Tweet text_Clean", help="Name of the column the Pipeline 1 cleaned tweet text is in")
-  parser.add_argument("tweet_column_name_pipe3", default="Tweet text_Clean", help="Name of the column the Pipeline 3 tweet text is in")
+  parser.add_argument("file_directory", help="Name of the directory the tweet files are in")
+  parser.add_argument("tweet_column_name_pipe1", help="Name of the column the Pipeline 1 cleaned tweet text is in")
+  parser.add_argument("tweet_column_name_pipe3", help="Name of the column the Pipeline 3 tweet text is in")
   args = parser.parse_args()
 
   dir_name = args.file_directory

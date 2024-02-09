@@ -90,10 +90,10 @@ def bootstrap(df, poly_label_col: str, true_label_col: str, sample_size: int=0):
 
 if __name__ == "__main__":
   parser = argparse.ArgumentParser()
-  parser.add_argument("file_directory", default="Twitter Dataset_CleanOutput", help="Name of the directory the tweet files are in")
-  parser.add_argument("poly_label_column_name", default="Tweet text_Clean_Label", help="Name of the column the Polyglot label is in")
-  parser.add_argument("true_label_column_name", default="SentLabel", help="Name of column the correct label is in")
-  parser.add_argument("skip_english", default=False, help="Whether to skip the English.csv file")
+  parser.add_argument("file_directory", help="Name of the directory the tweet files are in")
+  parser.add_argument("poly_label_column_name", help="Name of the column the Polyglot label is in")
+  parser.add_argument("true_label_column_name", help="Name of column the correct label is in")
+  parser.add_argument("skip_english", help="Whether to skip the English.csv file")
   args = parser.parse_args()
 
   dir_name = args.file_directory

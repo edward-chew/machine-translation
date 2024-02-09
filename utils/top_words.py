@@ -3,6 +3,9 @@ import numpy as np
 import argparse
 import pickle
 import os
+
+import sys
+sys.path.append('../translation-project')
 from cluster import get_topics_lists
 
 def main(dir_name):
@@ -17,7 +20,7 @@ def main(dir_name):
     # Most important clusters (by number of docs inside), sorted from most to least important
     top_index = doc_count.argsort()[::-1]
 
-    top_words = get_topics_lists(mgp, top_index, 20)
+    top_words = get_topics_lists(mgp, top_index, 5)
 
     df = pd.DataFrame()
     df["TopWords"] = top_words
@@ -31,7 +34,7 @@ def main(dir_name):
 
 if __name__ == "__main__":
   parser = argparse.ArgumentParser()
-  parser.add_argument("file_directory", default="0_AllTranslationsCombined_Sampled_ClusterBestModels", help="Name of the directory the cluster models are in")
+  parser.add_argument("file_directory", help="Name of the directory the cluster models are in")
   args = parser.parse_args()
 
   dir_name = args.file_directory
