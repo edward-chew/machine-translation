@@ -44,6 +44,13 @@ This repository contains the following:
 - **word_embedding.py**
   - Calculates the Euclidean distance between the Pipeline 1 and Pipeline 3 tweets.
 
+### Utilities
+
+- **sanity_check.py**
+  - Validates the `translate.py` and `back_translate.py` results, checking that all translations are nonempty and in the expected output language.
+- **top_words.py**
+  - Outputs the top 5 words of each cluster of each language for the topic clustering task.
+
 ## Usage
 
 1.  **Sample the dataset.**
