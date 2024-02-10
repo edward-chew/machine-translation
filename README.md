@@ -1,4 +1,4 @@
-# Machine Translation Demonstrating the Preservation of Semantic Content Across Multi-Language Dataset for use in State of the Art English-Trained Tools
+# Machine Translation for Accessible Multi-Language Text Analysis
 
 ## Datasets
 
