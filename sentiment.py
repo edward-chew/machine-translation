@@ -107,19 +107,19 @@ def count_labels(df, poly_label_col: str, true_label_col: str):
   print(f'  Total pos labels:        {tot_pos_labels} ({tot_pos_labels / len(df.index) :.1%})')
 
   tot_neg = len(df[df[true_label_col] == "Negative"])
-  print(f'  Total neg:               {tot_neg}')
+  print(f'  Total neg:               {tot_neg} ({tot_neg / len(df.index) :.1%})')
   print(f'    Neg correct:           {val_counts["neg correct"]} ({val_counts["neg correct"] / tot_neg :.1%})')
   print(f'    Neg mislabeled as neu: {val_counts["neg mislabled as neu"]} ({val_counts["neg mislabled as neu"] / tot_neg :.1%})')
   print(f'    Neg mislabeled as pos: {val_counts["neg mislabled as pos"]} ({val_counts["neg mislabled as pos"] / tot_neg :.1%})')
 
   tot_neu = len(df[df[true_label_col] == "Neutral"])
-  print(f'  Total neu:               {tot_neu}')
+  print(f'  Total neu:               {tot_neu} ({tot_neu / len(df.index) :.1%})')
   print(f'    Neu correct:           {val_counts["neu correct"]} ({val_counts["neu correct"] / tot_neu :.1%})')
   print(f'    Neu mislabeled as neg: {val_counts["neu mislabled as neg"]} ({val_counts["neu mislabled as neg"] / tot_neu :.1%})')
   print(f'    Neu mislabeled as pos: {val_counts["neu mislabled as pos"]} ({val_counts["neu mislabled as pos"] / tot_neu :.1%})')
 
   tot_pos = len(df[df[true_label_col] == "Positive"])
-  print(f'  Total pos:               {tot_pos}')
+  print(f'  Total pos:               {tot_pos} ({tot_pos / len(df.index) :.1%})')
   print(f'    Pos correct:           {val_counts["pos correct"]} ({val_counts["pos correct"] / tot_pos :.1%})')
   print(f'    Pos mislabeled as neg: {val_counts["pos mislabled as neg"]} ({val_counts["pos mislabled as neg"] / tot_pos :.1%})')
   print(f'    Pos mislabeled as neu: {val_counts["pos mislabled as neu"]} ({val_counts["pos mislabled as neu"] / tot_pos :.1%})')

@@ -38,7 +38,7 @@ def main(dir_name: str, tweet_col: str, sent_label_col: str) -> None:
 
 
 def clean_text(text: str) -> str:
-  # remove twitter Return handles (RT @xxx:)
+  # remove twitter retweet handles (RT @xxx:)
   text = re.sub("RT @[\w]*:", "", text)
   # remove twitter handles (@xxx)
   text = re.sub("@[\w]*", "", text)
